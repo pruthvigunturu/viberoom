@@ -1,0 +1,37 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: viberoom-backend
+    env_file:
+      - ./backend/.env
+    environment:
+      # Pin storage inside the mounted data dir so a fresh `docker compose up`
+      # on any machine works — no host-side file pre-creation required.
+      DATABASE_URL: sqlite:////app/data/viberoom.db
+      CHROMA_PERSIST_DIR: /app/data/chroma_db
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/data:/app/data
+      - hf_cache:/app/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request, sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8000
+    container_name: viberoom-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  hf_cache:

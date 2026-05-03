@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / Bun
+node_modules/
+dist/
+.bun/
+bun.lockb
+
+# Vite
+.vite/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Project data — keep the dir (for the docker volume mount), ignore contents
+backend/data/*
+!backend/data/.gitkeep
+backend/viberoom.db
+backend/viberoom.db-journal
+backend/chroma_db/
+backend/docs/agent_flow.png
+
+# Logs
+*.log
