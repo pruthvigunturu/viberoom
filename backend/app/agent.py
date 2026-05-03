@@ -148,11 +148,15 @@ def embed_and_store(state: AgentState) -> AgentState:
 # Node 3 — find_matches
 # ---------------------------------------------------------------------------
 def find_matches(state: AgentState) -> AgentState:
+    # Over-fetch so we have headroom to drop same-name duplicates (e.g. a user
+    # who submits the form twice with the same name shouldn't see themselves).
     raw = find_similar(
         query_text=state["embedding_text"],
-        top_k=3,
+        top_k=10,
         exclude_ids=[state["user_id"]],
     )
+
+    own_name = (state.get("name") or "").strip().casefold()
 
     db: Session = SessionLocal()
     try:
@@ -160,6 +164,8 @@ def find_matches(state: AgentState) -> AgentState:
         for m in raw:
             row = db.query(User).filter(User.id == m["user_id"]).one_or_none()
             if row is None:
+                continue
+            if own_name and row.name.strip().casefold() == own_name:
                 continue
             try:
                 analysis = json.loads(row.vibe_analysis_json or "{}")
@@ -173,6 +179,8 @@ def find_matches(state: AgentState) -> AgentState:
                 "similarity_score": m["similarity_score"],
                 "vibe_analysis": analysis,
             })
+            if len(matches) >= 3:
+                break
     finally:
         db.close()
 
