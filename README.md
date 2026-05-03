@@ -18,12 +18,7 @@ Describe your current vibe. A 4-node LangGraph agent analyzes it, embeds it, fin
 
 ## Demo
 
-> Drop a screenshot or 15-second GIF here, e.g.:
-> `![demo](docs/screenshots/demo.gif)`
-
-| Landing | Create profile | Matches |
-|---|---|---|
-| ![landing](docs/screenshots/landing.png) | ![create](docs/screenshots/create.png) | ![matches](docs/screenshots/matches.png) |
+![VibeRoom demo](docs/screenshots/demo.gif)
 
 ## Why this exists
 
