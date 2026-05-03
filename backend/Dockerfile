@@ -16,17 +16,14 @@ COPY scripts ./scripts
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
-# Pre-download the HuggingFace embedding model into the image so the first
-# real request doesn't pay a 30-second model-download tax.
-ENV HF_HOME=/app/.cache/huggingface
-RUN /app/.venv/bin/python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
-
 # --- runtime ---
 FROM python:3.12-slim AS runtime
 
+# HF_HOME points at the persistent volume so the embedding model downloads
+# once per volume (~30s on first request) and survives restarts + redeploys.
 ENV PYTHONUNBUFFERED=1 \
     PATH="/app/.venv/bin:$PATH" \
-    HF_HOME=/app/.cache/huggingface
+    HF_HOME=/app/data/.cache/huggingface
 
 WORKDIR /app
 

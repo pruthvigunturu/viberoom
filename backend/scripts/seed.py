@@ -9,12 +9,19 @@ real signups. Run AFTER the backend is up, e.g.:
 """
 from __future__ import annotations
 
+import json
 import os
+import ssl
 import sys
 import time
 import urllib.error
 import urllib.request
-import json
+
+try:
+    import certifi
+    _SSL_CTX = ssl.create_default_context(cafile=certifi.where())
+except ImportError:
+    _SSL_CTX = ssl.create_default_context()
 
 API_URL = os.environ.get("API_URL", "http://localhost:8000").rstrip("/")
 
@@ -78,21 +85,23 @@ def _post_user(payload: dict) -> dict:
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=120) as resp:
+    with urllib.request.urlopen(req, timeout=120, context=_SSL_CTX) as resp:
         return json.loads(resp.read().decode())
 
 
-def _wait_for_api(timeout_s: int = 60) -> None:
+def _wait_for_api(timeout_s: int = 120) -> None:
     deadline = time.time() + timeout_s
+    last_err: str | None = None
     while time.time() < deadline:
         try:
-            with urllib.request.urlopen(f"{API_URL}/health", timeout=2) as r:
+            with urllib.request.urlopen(f"{API_URL}/health", timeout=15, context=_SSL_CTX) as r:
                 if r.status == 200:
                     return
-        except (urllib.error.URLError, ConnectionError):
-            pass
-        time.sleep(1)
-    raise RuntimeError(f"API not reachable at {API_URL} after {timeout_s}s")
+                last_err = f"status={r.status}"
+        except Exception as e:
+            last_err = f"{type(e).__name__}: {e}"
+        time.sleep(2)
+    raise RuntimeError(f"API not reachable at {API_URL} after {timeout_s}s. Last error: {last_err}")
 
 
 def main() -> None:
@@ -110,7 +119,7 @@ def main() -> None:
             sys.exit(1)
 
     # final count
-    with urllib.request.urlopen(f"{API_URL}/users") as r:
+    with urllib.request.urlopen(f"{API_URL}/users", context=_SSL_CTX) as r:
         users = json.loads(r.read().decode())
     print(f"\nTotal users: {len(users)}")
 
