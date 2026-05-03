@@ -26,6 +26,7 @@ except ImportError:
 API_URL = os.environ.get("API_URL", "http://localhost:8000").rstrip("/")
 
 SEED_USERS = [
+    # Tech & builders
     {
         "name": "Maya",
         "vibe_text": "Late-night coder, lo-fi at 2am, building weird side projects, "
@@ -33,22 +34,10 @@ SEED_USERS = [
         "interests": ["coding", "lo-fi", "ramen", "side projects", "indie tools"],
     },
     {
-        "name": "Arjun",
-        "vibe_text": "Designer who lives in coffee shops, always sketching, "
-                     "loves long conversations about typography and visual culture.",
-        "interests": ["design", "coffee", "typography", "sketching", "branding"],
-    },
-    {
-        "name": "Priya",
-        "vibe_text": "Trail runner, podcasts on stoicism while I move, "
-                     "early mornings only, building a calmer version of myself.",
-        "interests": ["running", "stoicism", "fitness", "podcasts", "mornings"],
-    },
-    {
-        "name": "Dev",
-        "vibe_text": "Foodie traveler. Street food, languages, photography, jazz. "
-                     "I'd rather get lost in a market than visit a museum.",
-        "interests": ["travel", "food", "photography", "jazz", "languages"],
+        "name": "Karthik",
+        "vibe_text": "ML researcher who runs cooking experiments on weekends, "
+                     "listens to classical, takes long walks to think out loud.",
+        "interests": ["ml", "cooking", "classical music", "walks", "papers"],
     },
     {
         "name": "Anika",
@@ -57,10 +46,24 @@ SEED_USERS = [
         "interests": ["climate", "systems thinking", "tea", "nonfiction", "founder life"],
     },
     {
-        "name": "Rohan",
-        "vibe_text": "Quiet gamer with a soft spot for indie games, weekend hikes, "
-                     "and sci-fi novels with weird premises.",
-        "interests": ["indie games", "hiking", "sci-fi", "writing", "introvert"],
+        "name": "Vikram",
+        "vibe_text": "Open source maintainer by night, payments engineer by day. "
+                     "Spend my mornings doing pushups and reading old engineering blogs.",
+        "interests": ["open source", "fintech", "calisthenics", "blogs", "rust"],
+    },
+    {
+        "name": "Lena",
+        "vibe_text": "iOS developer who paints watercolors on weekends. Believe craft "
+                     "matters and that most software is way uglier than it needs to be.",
+        "interests": ["ios", "swift", "watercolor", "design", "minimalism"],
+    },
+
+    # Design & creative
+    {
+        "name": "Arjun",
+        "vibe_text": "Designer who lives in coffee shops, always sketching, "
+                     "loves long conversations about typography and visual culture.",
+        "interests": ["design", "coffee", "typography", "sketching", "branding"],
     },
     {
         "name": "Sara",
@@ -69,10 +72,142 @@ SEED_USERS = [
         "interests": ["music", "songwriting", "vinyl", "philosophy", "late nights"],
     },
     {
-        "name": "Karthik",
-        "vibe_text": "ML researcher who runs cooking experiments on weekends, "
-                     "listens to classical, takes long walks to think out loud.",
-        "interests": ["ml", "cooking", "classical music", "walks", "papers"],
+        "name": "Theo",
+        "vibe_text": "Indie filmmaker. Watch one Tarkovsky film a month. Currently "
+                     "obsessed with how silence carries emotion in a scene.",
+        "interests": ["film", "tarkovsky", "editing", "sound design", "scripts"],
+    },
+    {
+        "name": "Imani",
+        "vibe_text": "Photographer who travels to capture light at weird hours. "
+                     "Carry one camera and one lens, refuse to bring anything else.",
+        "interests": ["photography", "travel", "light", "minimalism", "film cameras"],
+    },
+    {
+        "name": "Marco",
+        "vibe_text": "Bartender turned mixologist who treats cocktails like edible essays. "
+                     "Read history obsessively, particularly anything about empire and trade.",
+        "interests": ["cocktails", "history", "writing", "old cookbooks", "fermentation"],
+    },
+
+    # Outdoors & body
+    {
+        "name": "Priya",
+        "vibe_text": "Trail runner, podcasts on stoicism while I move, "
+                     "early mornings only, building a calmer version of myself.",
+        "interests": ["running", "stoicism", "fitness", "podcasts", "mornings"],
+    },
+    {
+        "name": "Jonah",
+        "vibe_text": "Climber, mostly bouldering. Spend hours figuring out a single move. "
+                     "It's the closest thing I have to meditation.",
+        "interests": ["bouldering", "climbing", "movement", "minimalist gear", "outdoors"],
+    },
+    {
+        "name": "Mira",
+        "vibe_text": "Yoga teacher and sometimes-poet. Believe the body holds memory "
+                     "and that breath is more interesting than people give it credit for.",
+        "interests": ["yoga", "poetry", "breathwork", "tea", "slow mornings"],
+    },
+    {
+        "name": "Diego",
+        "vibe_text": "Cyclist, road and gravel. Love a 5am ride before anyone else is awake. "
+                     "Coffee, podcasts, and one weird tan line.",
+        "interests": ["cycling", "endurance", "podcasts", "coffee", "gravel rides"],
+    },
+    {
+        "name": "Aviva",
+        "vibe_text": "Skater since I was 12. Now I write about board sports for a living. "
+                     "Soft spot for analog watches and stickers on laptops.",
+        "interests": ["skating", "writing", "watches", "music", "subcultures"],
+    },
+
+    # Travel, food, language
+    {
+        "name": "Dev",
+        "vibe_text": "Foodie traveler. Street food, languages, photography, jazz. "
+                     "I'd rather get lost in a market than visit a museum.",
+        "interests": ["travel", "food", "photography", "jazz", "languages"],
+    },
+    {
+        "name": "Yuki",
+        "vibe_text": "Linguist who collects words that don't translate. Currently learning "
+                     "Portuguese, third language since college. Cook a lot of noodles.",
+        "interests": ["linguistics", "noodles", "languages", "literature", "podcasts"],
+    },
+    {
+        "name": "Nadia",
+        "vibe_text": "Food writer, ex-chef. Travel for unfamiliar markets. Believe "
+                     "good rice is a love language.",
+        "interests": ["food", "writing", "travel", "rice", "kitchens"],
+    },
+
+    # Mind & quiet types
+    {
+        "name": "Rohan",
+        "vibe_text": "Quiet gamer with a soft spot for indie games, weekend hikes, "
+                     "and sci-fi novels with weird premises.",
+        "interests": ["indie games", "hiking", "sci-fi", "writing", "introvert"],
+    },
+    {
+        "name": "Felix",
+        "vibe_text": "Philosophy grad student, chess player, occasional bread baker. "
+                     "Most at peace when the conversation gets weird at 2am.",
+        "interests": ["philosophy", "chess", "baking", "essays", "long walks"],
+    },
+    {
+        "name": "Hana",
+        "vibe_text": "Astronomer-turned-data scientist. Spend weekends looking up at the sky "
+                     "and weekdays looking down at notebooks. Both feel like the same activity.",
+        "interests": ["astronomy", "data science", "stargazing", "notebooks", "tea"],
+    },
+    {
+        "name": "Ezra",
+        "vibe_text": "Lawyer who reads policy papers for fun and runs a small newsletter "
+                     "about boring infrastructure. Coffee snob. Believe public goods deserve attention.",
+        "interests": ["policy", "newsletters", "coffee", "civics", "infrastructure"],
+    },
+
+    # Music & nightlife
+    {
+        "name": "Kai",
+        "vibe_text": "DJ and music producer. Live for that moment when a room moves together. "
+                     "Off-decks, I read about acoustics and drink terrible energy drinks.",
+        "interests": ["dj", "production", "acoustics", "nightlife", "synths"],
+    },
+    {
+        "name": "Camille",
+        "vibe_text": "Dancer and choreographer. Believe movement teaches you things words can't. "
+                     "Currently obsessed with collaborations between dancers and AI.",
+        "interests": ["dance", "choreography", "ai", "collaboration", "stretching"],
+    },
+
+    # Crafts & makers
+    {
+        "name": "Idris",
+        "vibe_text": "Woodworker who fell into furniture making after burning out from finance. "
+                     "Believe slow work is the best therapy. Drink black coffee. Read mysteries.",
+        "interests": ["woodworking", "furniture", "mysteries", "coffee", "slow craft"],
+    },
+    {
+        "name": "Beatrice",
+        "vibe_text": "Knitter and pattern designer who quit consulting two years ago. "
+                     "Run a tiny yarn shop. Cats. Audiobooks. No regrets.",
+        "interests": ["knitting", "patterns", "audiobooks", "cats", "tea"],
+    },
+
+    # Healthcare / science
+    {
+        "name": "Tomás",
+        "vibe_text": "Med student who runs a podcast about weird medical history. "
+                     "Spend my breaks watching cooking videos and arguing about pasta shapes.",
+        "interests": ["medicine", "podcasts", "history", "pasta", "cooking videos"],
+    },
+    {
+        "name": "Saanvi",
+        "vibe_text": "Neuroscience PhD looking at how attention shifts during creative work. "
+                     "On weekends I try terrible pottery and read poetry out loud.",
+        "interests": ["neuroscience", "attention", "pottery", "poetry", "creative process"],
     },
 ]
 
