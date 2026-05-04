@@ -1,0 +1,353 @@
+{
+  "info": {
+    "name": "VibeRoom API",
+    "description": "AI-powered social engagement platform — vibe matching with LangGraph.\n\n**How to use:**\n1. Import this collection into Postman.\n2. Import the matching environment (`VibeRoom.postman_environment.json`) — or set the `baseUrl` collection variable to `http://localhost:8000` (local) or `https://viberoom-api.fly.dev` (prod).\n3. Start with `Create User`. The response includes a `user.id` — the test script auto-saves it to the `userId` collection variable, which the other requests reuse.\n4. Then run `Get Matches`, `Get Agent Trace`, etc.\n\n**Endpoints (6):**\n- GET `/health` — liveness check\n- POST `/users` — create user, run full agent, return matches + icebreakers\n- GET `/users` — list all users\n- GET `/users/{id}` — get one user\n- GET `/users/{id}/matches` — re-match an existing user (skips analyze + embed)\n- GET `/users/{id}/agent-trace` — return saved vibe-analysis JSON",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "viberoom-api-collection-v1"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string",
+      "description": "Override per-environment. Local: http://localhost:8000  ·  Prod: https://viberoom-api.fly.dev"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string",
+      "description": "Auto-populated by the 'Create User' test script. Used by all /users/{user_id}/* requests."
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Liveness probe. Returns `{\"status\": \"ok\"}` when the API is up."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('returns ok', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.status).to.eql('ok');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/health",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["health"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{"key": "content-type", "value": "application/json"}],
+              "body": "{\n  \"status\": \"ok\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create user (run full agent)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sam Rivers\",\n  \"vibe_text\": \"Feeling chill tonight. Into bebop, indie films, and slow conversations about the things people are quietly obsessed with.\",\n  \"interests\": [\"jazz\", \"indie cinema\", \"writing\", \"late-night walks\"]\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Creates a user and runs the full LangGraph pipeline:\n1. `analyze_vibe` (Llama 3.3 70B via Groq)\n2. `embed_and_store` (sentence-transformers MiniLM → ChromaDB)\n3. `find_matches` (cosine similarity)\n4. `generate_icebreakers` (parallel Llama calls)\n\nReturns the user, vibe analysis, and top matches with personalized icebreakers.\n\n**Body schema (UserCreate):**\n- `name` (string, 1–120 chars, required)\n- `vibe_text` (string, 1–4000 chars, required)\n- `interests` (array of strings, optional)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('response has user.id', () => {",
+                  "  pm.expect(json.user).to.be.an('object');",
+                  "  pm.expect(json.user.id).to.be.a('string').and.not.empty;",
+                  "});",
+                  "pm.test('response has vibe_analysis', () => {",
+                  "  pm.expect(json.vibe_analysis).to.be.an('object');",
+                  "  pm.expect(json.vibe_analysis.energy_level).to.be.within(1, 10);",
+                  "});",
+                  "pm.test('response has matches array', () => {",
+                  "  pm.expect(json.matches).to.be.an('array');",
+                  "});",
+                  "// Save the new user id for downstream requests",
+                  "if (json.user && json.user.id) {",
+                  "  pm.collectionVariables.set('userId', json.user.id);",
+                  "  console.log('Saved userId:', json.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "200 OK · agent result",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Sam Rivers\",\n  \"vibe_text\": \"Feeling chill tonight. Into bebop and indie films.\",\n  \"interests\": [\"jazz\", \"indie cinema\"]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/users",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{"key": "content-type", "value": "application/json"}],
+              "body": "{\n  \"user\": {\n    \"id\": \"u_a1b2c3\",\n    \"name\": \"Sam Rivers\",\n    \"vibe_text\": \"Feeling chill tonight...\",\n    \"interests\": [\"jazz\", \"indie cinema\"],\n    \"created_at\": \"2026-05-05T18:30:00\"\n  },\n  \"vibe_analysis\": {\n    \"mood\": \"relaxed\",\n    \"energy_level\": 4,\n    \"key_themes\": [\"music\", \"film\", \"introspection\"],\n    \"summary\": \"laid-back creative type seeking depth\"\n  },\n  \"matches\": [\n    {\n      \"user\": {\n        \"id\": \"u_x9y8z7\",\n        \"name\": \"Maya Chen\",\n        \"vibe_text\": \"Loves Coltrane, Wong Kar-wai, and rainy nights.\",\n        \"interests\": [\"jazz\", \"film\", \"poetry\"],\n        \"created_at\": \"2026-04-28T10:12:00\"\n      },\n      \"similarity_score\": 0.87,\n      \"vibe_analysis\": {\n        \"mood\": \"reflective\",\n        \"energy_level\": 3,\n        \"key_themes\": [\"jazz\", \"cinema\", \"melancholy\"],\n        \"summary\": \"introspective film + music lover\"\n      },\n      \"icebreakers\": [\n        \"You both mentioned bebop — who's your desert-island Coltrane record?\",\n        \"What's the last indie film that genuinely surprised you?\"\n      ]\n    }\n  ]\n}"
+            },
+            {
+              "name": "422 Unprocessable Entity · validation error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n  \"name\": \"\",\n  \"vibe_text\": \"\"\n}"},
+                "url": {
+                  "raw": "{{baseUrl}}/users",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users"]
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [{"key": "content-type", "value": "application/json"}],
+              "body": "{\n  \"detail\": [\n    {\n      \"type\": \"string_too_short\",\n      \"loc\": [\"body\", \"name\"],\n      \"msg\": \"String should have at least 1 character\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "List users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Returns all users ordered by `created_at` DESC. Each item is a `UserOut` (no matches, no analysis)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('returns an array', () => {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "200 OK · array of users",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{"key": "content-type", "value": "application/json"}],
+              "body": "[\n  {\n    \"id\": \"u_a1b2c3\",\n    \"name\": \"Sam Rivers\",\n    \"vibe_text\": \"Feeling chill tonight...\",\n    \"interests\": [\"jazz\", \"indie cinema\"],\n    \"created_at\": \"2026-05-05T18:30:00\"\n  },\n  {\n    \"id\": \"u_x9y8z7\",\n    \"name\": \"Maya Chen\",\n    \"vibe_text\": \"Loves Coltrane and Wong Kar-wai\",\n    \"interests\": [\"jazz\", \"film\"],\n    \"created_at\": \"2026-04-28T10:12:00\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Get user by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            },
+            "description": "Fetch a single user by id. Uses the `userId` collection variable that was auto-populated by `Create user`. Returns 404 if not found."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200 or 404', () => {",
+                  "  pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "  pm.test('id matches', () => {",
+                  "    pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('userId'));",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/u_does_not_exist",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "u_does_not_exist"]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [{"key": "content-type", "value": "application/json"}],
+              "body": "{\n  \"detail\": \"User not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get matches (re-match existing user)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/matches",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "matches"]
+            },
+            "description": "Re-runs match + icebreaker generation for an existing user. **Skips** `analyze_vibe` and `embed_and_store` — reuses the previously stored vibe analysis and embedding. Useful when new users have joined and you want to refresh someone's match list without re-paying the LLM cost of re-analyzing."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200 or 404', () => {",
+                  "  pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.test('has matches array', () => {",
+                  "    pm.expect(json.matches).to.be.an('array');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get agent trace (saved vibe analysis)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/agent-trace",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "agent-trace"]
+            },
+            "description": "Returns the `VibeAnalysis` JSON that the `analyze_vibe` node produced when this user was created (mood, energy_level, key_themes, summary). Stored in SQLite as JSON; falls back to defaults if the LLM output drifted."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200 or 404', () => {",
+                  "  pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.test('energy_level in [1,10]', () => {",
+                  "    pm.expect(json.energy_level).to.be.within(1, 10);",
+                  "  });",
+                  "  pm.test('has key_themes array', () => {",
+                  "    pm.expect(json.key_themes).to.be.an('array');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "200 OK · vibe analysis",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/u_a1b2c3/agent-trace",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "u_a1b2c3", "agent-trace"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{"key": "content-type", "value": "application/json"}],
+              "body": "{\n  \"mood\": \"relaxed\",\n  \"energy_level\": 4,\n  \"key_themes\": [\"music\", \"film\", \"introspection\"],\n  \"summary\": \"laid-back creative type seeking depth\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
