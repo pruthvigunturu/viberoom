@@ -35,7 +35,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <footer className="max-w-5xl mx-auto px-6 py-10 text-xs text-stone-400 text-center">
-        Built for Tweeny · LangGraph + Groq + HuggingFace + ChromaDB
+        LangGraph · Groq · HuggingFace · ChromaDB
       </footer>
     </div>
   );

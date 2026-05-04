@@ -170,4 +170,4 @@ In rough priority:
 
 ## License
 
-[MIT](LICENSE) · Built for [Tweeny](https://tweeny.com) · 2026
+[MIT](LICENSE) · 2026
